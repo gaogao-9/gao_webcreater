@@ -46,7 +46,13 @@ function directoryLookup(dir,exts){
 }
 
 function _directoryLookup(dir,dirnames,output){
-	var items = fs.readdirSync(dir);
+	try{
+		var items = fs.readdirSync(dir);
+	}
+	catch(err){
+		fs.mkdirSync(dir);
+		var items = fs.readdirSync(dir);
+	}
 	items.forEach(function(item){
 		var _path = path.join(dir,item);
 		var stat = fs.statSync(_path);
