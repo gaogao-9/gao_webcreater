@@ -11,7 +11,16 @@ var csscompile = require("./gulp/csscompile");
 gulp.task("default",["compile-debug","watch"]);
 
 gulp.task("watch",function(callback){
-	gulp.watch(["./src/html/*.html","./src/html/*.htm","./src/html/*.ejs","./src/html/*.ect"],function(eve){
+	gulp.watch(["./src/ejs/*.js",],function(eve){
+		var projects = project("html");
+		_htmlcompile(projects,true);
+	});
+	gulp.watch([
+		"./src/html/*.html",
+		"./src/html/*.htm",
+		"./src/html/*.ejs",
+		"./src/html/*.ect"
+	],function(eve){
 		var projects = project("html",{includePath: eve.path});
 		_htmlcompile(projects,true);
 	});

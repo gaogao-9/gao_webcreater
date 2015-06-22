@@ -1,13 +1,16 @@
 var path = require("path");
 var stream = require("stream");
 var notifier = require('node-notifier');
+var through2 = require("through2");
 
 var gulp = require("gulp");
 var concat = require("gulp-concat");
+var ejs = require("gulp-ejs");
 var ejsmin = require("gulp-ejsmin");
-var minifyHtml = require("gulp-minify-html");
+var htmlmin = require("gulp-htmlmin");
 var merge2 = require("merge2");
 
+var compilePath = require("./compilePath");
 var config = require("./../config");
 
 //出力用
@@ -26,16 +29,24 @@ function compile(project,opt){
 		var projectName = projectNames[i];
 		var projectTarget = project[projectName];
 		var htmlList = projectTarget.html;
-		var ext = (htmlList&&htmlList[0]&&htmlList[0]["::ext"]) || "html";
 		
-		compileList.push(
-			htmlCompile(htmlList,isDebug)
-				.pipe(concat(projectName + "." + ext))
-				.pipe(gulp.dest(path.join(dest,config.htmlDir)))
-				.on("end",function(projectName){
-					console.log("プロジェクト[" + projectName + "]のHTMLコンパイルが完了しました！");
-				}.bind(null,projectName))
-		);
+		var task = htmlCompile(htmlList,isDebug)
+			.pipe(concat(projectName + ".html"));
+		
+		if(!isDebug){
+			task = task.pipe(through2.obj(function(file,enc,next){
+					var str = file.contents.toString().replace(/[\n\r]/g,"");
+					file.contents = new Buffer(str);
+					next(null, file);
+				}));
+		}
+		
+		task = task.pipe(gulp.dest(path.join(dest,config.htmlDir)))
+			.on("end",function(projectName){
+				console.log("プロジェクト[" + projectName + "]のHTMLコンパイルが完了しました！");
+			}.bind(null,projectName));
+		
+		compileList.push(task);
 	}
 	stream.add(compileList);
 	
@@ -116,23 +127,54 @@ function compileECT(src,useMinify,id){
 }
 
 function _compileEJSorECT(src,useMinify,id,type){
-	var output = gulp.src(src)
-		.pipe(concat("all"+id+"."+type))
-	if(useMinify){
-		output = output.pipe(ejsmin({removeComment: true}));
+	var stream = merge2();
+	var outputList = [];
+	
+	if(type==="ejs"){
+		var html = compilePath.html(path.join("./",config.inputDir,config.htmlDir));
+		var js   = compilePath.js(path.join("./",config.inputDir,config.jsDir));
+		var css  = compilePath.css(path.join("./",config.inputDir,config.cssDir));
+		var ejsp  = compilePath.ejs(path.join("./",config.inputDir,config.ejsDir));
 	}
-	output = output.on("end",function(){
-		//console.log(src);
-		//console.log("のconcat && " + type + (useMinify?" && minify":"") + "が完了しました!");
+	for(var i=0,iLen=src.length;i<iLen;++i){
+		var output = gulp.src(src[i]);
+		if(type==="ejs"){
+			var tmplate;
+			try{
+				template = require(path.resolve("./",config.inputDir,config.ejsDir,path.basename(src[i],type)+"js"))(html,js,css,ejsp);
+			}
+			catch(err){
+				template = {};
+			}
+			output = output
+				.pipe(ejs(template))
+				.on("error",function(title,err){
+					console.log(err.message);
+					notifier.notify({
+						message: err.message,
+						title: "EJSError("+ title +")"
+					});
+				}.bind(null,path.basename(src[i])));
+		}
+		outputList.push(output);
+	}
+	stream.add(outputList)
+		.pipe(concat("all"+id+".html"));
+	if(useMinify){
+		stream = stream.pipe(ejsmin({removeComment: true}));
+	}
+	stream = stream.on("queueDrain",function(){
+		console.log(src);
+		console.log("のconcat && " + type + (useMinify?" && minify":"") + "が完了しました!");
 	});
-	return output;
+	return stream;
 }
 
 function compileNormal(src,useMinify,id){
 	var output = gulp.src(src)
 		.pipe(concat("all"+id+".html"));
 	if(useMinify){
-		output = output.pipe(minifyHtml());
+		output = output.pipe(htmlmin());
 	}
 	output = output.on("end",function(){
 		//console.log(src);

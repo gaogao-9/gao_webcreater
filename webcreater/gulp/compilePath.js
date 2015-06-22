@@ -4,6 +4,7 @@ var path = require("path");
 exports.html = html;
 exports.js = js;
 exports.css = css;
+exports.ejs = ejs;
 
 function html(dir){
 	return directoryLookup(dir,["html","htm","ejs","ect"]);
@@ -15,6 +16,10 @@ function js(dir){
 
 function css(dir){
 	return directoryLookup(dir,["css","scss","sass"]);
+};
+
+function ejs(dir){
+	return directoryLookup(dir,["js"]);
 };
 
 function directoryLookup(dir,exts){

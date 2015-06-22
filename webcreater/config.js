@@ -1,7 +1,8 @@
 module.exports = {
 	inputDir:  "src",
 	outputDir: "bin",
-	htmlDir:   "",
+	htmlDir:   "html",
 	jsDir:     "js",
 	cssDir:    "css",
+	ejsDir:    "ejs",
 }
