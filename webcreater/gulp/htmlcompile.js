@@ -141,7 +141,9 @@ function _compileEJSorECT(src,useMinify,id,type){
 		if(type==="ejs"){
 			var tmplate;
 			try{
-				template = require(path.resolve("./",config.inputDir,config.ejsDir,path.basename(src[i],type)+"js"))(html,js,css,ejsp);
+				var reqPath = path.resolve("./",config.inputDir,config.ejsDir,path.basename(src[i],type)+"js");
+				delete(require.cache[reqPath]); //リロードするためにキャッシュは消し去る
+				template = require(reqPath)(html,js,css,ejsp);
 			}
 			catch(err){
 				template = {};
@@ -154,7 +156,8 @@ function _compileEJSorECT(src,useMinify,id,type){
 						message: err.message,
 						title: "EJSError("+ title +")"
 					});
-				}.bind(null,path.basename(src[i])));
+					this.emit("end");
+				}.bind(output,path.basename(src[i])));
 		}
 		outputList.push(output);
 	}
@@ -163,9 +166,9 @@ function _compileEJSorECT(src,useMinify,id,type){
 	if(useMinify){
 		stream = stream.pipe(ejsmin({removeComment: true}));
 	}
-	stream = stream.on("queueDrain",function(){
-		console.log(src);
-		console.log("のconcat && " + type + (useMinify?" && minify":"") + "が完了しました!");
+	stream = stream.on("end",function(){
+		//console.log(src);
+		//console.log("のconcat && " + type + (useMinify?" && minify":"") + "が完了しました!");
 	});
 	return stream;
 }
