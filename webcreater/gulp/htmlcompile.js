@@ -33,8 +33,11 @@ function compile(project,opt){
 		var task = htmlCompile(htmlList,isDebug)
 			.pipe(concat(projectName + ".html"));
 		
-		if(!isDebug){
-			task = task.pipe(through2.obj(function(file,enc,next){
+		//if(!isDebug){
+		if(true){ //改行つぶしは常にやっておかないと表示に影響が出る
+			task = task
+				.pipe(ejsmin({removeComment: true}))
+				.pipe(through2.obj(function(file,enc,next){
 					var str = file.contents.toString().replace(/[\n\r]/g,"");
 					file.contents = new Buffer(str);
 					next(null, file);
