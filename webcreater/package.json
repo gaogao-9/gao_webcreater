@@ -1,6 +1,6 @@
 {
   "name": "webcreater",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "オレオレgulp開発環境ツール",
   "main": "gulpfile.js",
   "dependencies": {
@@ -19,7 +19,6 @@
     "gulp-ruby-sass": "^0.7.1",
     "gulp-uglify": "^1.2.0",
     "merge2": "^0.3.5",
-    "neo-async": "^1.2.1",
     "node-notifier": "^4.2.3",
     "run-sequence": "^1.1.1",
     "through2": "^2.0.0"
