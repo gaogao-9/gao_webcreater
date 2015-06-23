@@ -3,7 +3,7 @@ var stream = require("stream");
 var notifier = require('node-notifier');
 
 var gulp = require("gulp");
-var sass = require("gulp-sass");
+var sass = require("gulp-ruby-sass");
 var concat = require("gulp-concat");
 var minifyCss = require("gulp-minify-css");
 var merge2 = require("merge2");
@@ -117,12 +117,12 @@ function compileSASS(src,useMinify,id){
 function _compileSASSorSCSS(src,useMinify,id,type){
 	var output = gulp.src(src)
 		.pipe(concat("all"+id+"."+type))
-		.pipe(sass())
+		.pipe(sass({ style: 'compact', compass: true, sourcemap: false }))
 		.on("error",function(err){
 			//エラーが出たらバルーンを垂れ流す
 			var title = src.map(function(e){ return path.basename(e); }).join(",");
 			console.log(type.toUpperCase() + "でエラーが発生(" + title + ")");
-			console.log(err.messageFormatted);
+			console.log(err.message);
 			notifier.notify({
 				message: err.message,
 				title: type.toUpperCase() + "Error("+ title +")"

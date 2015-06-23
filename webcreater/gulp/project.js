@@ -17,6 +17,10 @@ function create(type,opt){
 	var js   = compilePath.js(path.join("./",config.inputDir,config.jsDir));
 	var css  = compilePath.css(path.join("./",config.inputDir,config.cssDir));
 	
+	//キャッシュを消し飛ばす
+	delete(require["./../projectpath"]);
+	projectPath = require("./../projectpath");
+	
 	var res = projectPath(html,js,css);
 	
 	//正当性チェックをする

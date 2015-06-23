@@ -11,6 +11,18 @@ var csscompile = require("./gulp/csscompile");
 gulp.task("default",["compile-debug","watch"]);
 
 gulp.task("watch",function(callback){
+	gulp.watch(["./projectPath.js",],function(eve){
+		if(eve.type === "deleted"){
+			gulp.watch(["./projectPath.js",],arguments.callee);
+			return;
+		}
+		
+		runSequence([
+			"htmlcompile-debug",
+			"jscompile-debug",
+			"csscompile-debug",
+		]);
+	});
 	gulp.watch(["./src/ejs/*.js",],function(eve){
 		var projects = project("html");
 		_htmlcompile(projects,true);
